@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				const imageBuffer = await response.arrayBuffer();
 				let filename = '';
 				const possibleFilename =
-					image.split('/').pop().split('?').shift().filenameParts.shift() || '';
+					image.split('/').pop().split('?').shift() || '';
 				if (possibleFilename && possibleFilename.includes('.')) {
 					filename = possibleFilename;
 				} else {
