@@ -19,7 +19,7 @@
 					<a class="mx-2 text-gray-800 hover:text-gray-600" href="/admin/login">Admin</a>
 					<a
 						class="mx-2 text-gray-800 hover:text-gray-600"
-						href="https://github.com/phillychi3"
+						href="https://github.com/phillychi3/rt-picture-system"
 						target="_blank">Github</a
 					>
 				</div>
