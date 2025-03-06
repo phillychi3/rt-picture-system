@@ -103,6 +103,33 @@
 			console.error('加載 Masonry 失敗:', error);
 		}
 	}
+
+	const downloadAll = async () => {
+		try {
+			const response = await fetch(`/api/downloadzip?id=${share.id}`, {
+				method: 'GET'
+			});
+
+			if (!response.ok) {
+				throw new Error('下載失敗');
+			}
+
+			let filename = 'images.zip';
+
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			a.remove();
+		} catch (error) {
+			console.error('下載失敗:', error);
+			alert('下載失敗，請稍後再試');
+		}
+	};
 </script>
 
 <svelte:head>
@@ -112,9 +139,19 @@
 <svelte:window on:keydown={handleKeydown} on:resize={handleResize} />
 
 <div class="mx-auto max-w-full px-4 py-8">
-	<header class="mb-8 border-b border-gray-200 pb-4">
-		<h1 class="mb-2 text-3xl font-bold text-gray-900">{share.title}</h1>
-		<p class="text-gray-600 italic">由 {share.name} 分享</p>
+	<header class="mb-8 flex items-center border-b border-gray-200 pb-4">
+		<div>
+			<h1 class="mb-2 text-3xl font-bold text-gray-900">{share.title}</h1>
+			<p class="text-gray-600 italic">由 {share.name} 分享</p>
+		</div>
+		<div class="ml-auto">
+			<button
+				class="flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-green-700"
+				onclick={downloadAll}
+			>
+				下載全部
+			</button>
+		</div>
 	</header>
 
 	{#if share.images && share.images.length > 0}
@@ -126,8 +163,8 @@
 					<div class="masonry-item w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5">
 						<div
 							class="m-2 cursor-pointer overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl"
-							on:click={() => openLightbox(i)}
-							on:keypress={(e) => e.key === 'Enter' && openLightbox(i)}
+							onclick={() => openLightbox(i)}
+							onkeypress={(e) => e.key === 'Enter' && openLightbox(i)}
 							tabindex="0"
 							role="button"
 							aria-label="圖片 {i + 1}, 點擊放大"
@@ -162,8 +199,8 @@
 {#if showLightbox && share.images && share.images.length > 0}
 	<div
 		class="bg-opacity-90 fixed inset-0 z-50 flex items-center justify-center bg-black"
-		on:click={closeLightbox}
-		on:keydown={(e) => e.key === 'Escape' && closeLightbox()}
+		onclick={closeLightbox}
+		onkeydown={(e) => e.key === 'Escape' && closeLightbox()}
 		bind:this={lightboxElement}
 		tabindex="0"
 		role="dialog"
@@ -171,14 +208,6 @@
 		aria-label="圖片檢視器"
 	>
 		<section class="relative max-h-[90vh] max-w-5xl" role="document">
-			<button
-				type="button"
-				class="absolute inset-0 z-10 cursor-default"
-				on:click|stopPropagation={() => {}}
-				aria-hidden="true"
-				tabindex="-1"
-			></button>
-
 			<img
 				src={share.images[currentImageIndex]}
 				alt="{share.title} - 圖片 {currentImageIndex + 1}"
@@ -188,7 +217,10 @@
 			<button
 				type="button"
 				class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 left-2 z-20 -translate-y-1/2 rounded-full bg-black p-2 text-white"
-				on:click|stopPropagation={prevImage}
+				onclick={(e) => {
+					e.stopPropagation();
+					prevImage();
+				}}
 				aria-label="上一張圖片"
 			>
 				&lt;
@@ -197,7 +229,10 @@
 			<button
 				type="button"
 				class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 right-2 z-20 -translate-y-1/2 rounded-full bg-black p-2 text-white"
-				on:click|stopPropagation={nextImage}
+				onclick={(e) => {
+					e.stopPropagation();
+					nextImage();
+				}}
 				aria-label="下一張圖片"
 			>
 				&gt;
@@ -210,7 +245,10 @@
 			<button
 				type="button"
 				class="bg-opacity-50 hover:bg-opacity-70 absolute top-2 right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black text-white"
-				on:click|stopPropagation={closeLightbox}
+				onclick={(e) => {
+					e.stopPropagation();
+					closeLightbox();
+				}}
 				aria-label="關閉圖片檢視器"
 			>
 				✕

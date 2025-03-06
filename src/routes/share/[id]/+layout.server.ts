@@ -11,22 +11,10 @@ export const load: LayoutServerLoad = async ({ params, depends }) => {
 		const share = await getShareById(id);
 
 		if (!share) {
-			throw error(404, '找不到分享');
+			throw error(404, '找不到分享項目');
 		}
 
-		const serializableShare = {
-			id: share.id,
-			title: share.title || '',
-			name: share.name || '',
-			description: share.description || '',
-			images: [...(share.images || [])],
-			createdAt: share.createdAt
-				? new Date(share.createdAt).toISOString()
-				: new Date().toISOString(),
-			updatedAt: share.updatedAt ? new Date(share.updatedAt).toISOString() : undefined
-		};
-
-		return { share: serializableShare };
+		return { share: share };
 	} catch (err) {
 		console.error('載入出錯:', err);
 		if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
