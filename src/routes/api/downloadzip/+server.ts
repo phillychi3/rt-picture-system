@@ -22,12 +22,14 @@ export const GET: RequestHandler = async ({ url }) => {
 		for (const image of share.images) {
 			try {
 				const response = await fetch(image);
-				if (!response.ok) continue;
+				if (!response.ok) {
+					console.error(`下載圖片失敗: ${image}`, response.statusText);
+					continue;
+				}
 
 				const imageBuffer = await response.arrayBuffer();
 				let filename = '';
-				const possibleFilename =
-					image.split('/').pop().split('?').shift() || '';
+				const possibleFilename = image.split('/').pop().split('?').shift() || '';
 				if (possibleFilename && possibleFilename.includes('.')) {
 					filename = possibleFilename;
 				} else {
