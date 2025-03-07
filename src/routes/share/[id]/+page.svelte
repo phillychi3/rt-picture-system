@@ -139,6 +139,10 @@
 
 <svelte:head>
 	<title>{share.title || '分享內容'}</title>
+	<meta name="description" content={share.description || '分享內容'} />
+	<meta property="og:title" content={share.title || '分享內容'} />
+	<meta property="og:description" content={share.description || '分享內容'} />
+	<meta property="og:image" content={share.images && share.images[0]} />
 </svelte:head>
 
 <svelte:window on:keydown={handleKeydown} on:resize={handleResize} />
