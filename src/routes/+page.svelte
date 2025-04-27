@@ -13,7 +13,7 @@
 
 <svelte:head>
 	<title>返圖系統</title>
-	<meta name="description" content="就是一個反圖系統" />
+	<meta name="description" content="就是一個返圖系統" />
 </svelte:head>
 
 <Header />
@@ -31,7 +31,7 @@
 				</div>
 				<div class="flex flex-wrap gap-4 pt-4">
 					<a
-						href="/"
+						href="/share/67c867510ec0e08fcb4e484b"
 						class="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-blue-700 hover:shadow-lg"
 					>
 						使用範例
@@ -70,7 +70,7 @@
 									href="https://discord.gg/F63mmtSgW3"
 									class="font-semibold text-blue-600 hover:text-blue-800 hover:underline"
 								>
-									加入支援伺服器
+									加入支援(我的)伺服器
 								</a>
 							</div>
 						</div>

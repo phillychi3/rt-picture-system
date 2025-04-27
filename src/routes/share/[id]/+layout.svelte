@@ -14,5 +14,5 @@
 {:else if share}
 	<slot />
 {:else}
-	<div class="loading">加载中...</div>
+	<div class="loading">加載中...</div>
 {/if}
