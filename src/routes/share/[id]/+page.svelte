@@ -196,6 +196,7 @@
 									alt="{share.title} - 圖片 {i + 1}"
 									class="h-auto w-full object-cover"
 									loading="lazy"
+                  decoding="async"
 									style={loadingImages[i] ? 'opacity: 0;' : 'opacity: 1;'}
 									onload={() => handleImageLoad(i)}
 								/>

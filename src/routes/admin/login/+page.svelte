@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import Header from '$lib/components/navbar.svelte';
@@ -9,17 +9,14 @@
 	let username = '';
 	let password = '';
 	let isSubmitting = false;
-
 	onMount(() => {
 		if (data.user) {
-			window.location.href = '/admin';
+			goto('/admin');
 		}
 	});
 	$: if (form?.success) {
-		console.log('登入成功，即將跳轉...');
 		if (browser) {
-			goto('/admin');
-			invalidateAll();
+			window.location.href = '/admin';
 		}
 	}
 
@@ -54,9 +51,7 @@
 		<form method="POST" action="?/login" on:submit={handleSubmit} class="mt-8 space-y-6">
 			<div class="space-y-4 md:space-y-6">
 				<div>
-					<label for="email" class="mb-2 block text-sm font-medium text-gray-900"
-						>Account</label
-					>
+					<label for="email" class="mb-2 block text-sm font-medium text-gray-900">Account</label>
 					<input
 						type="text"
 						name="username"
