@@ -55,7 +55,7 @@
 			<div class="space-y-4 md:space-y-6">
 				<div>
 					<label for="email" class="mb-2 block text-sm font-medium text-gray-900"
-						>Your account</label
+						>Account</label
 					>
 					<input
 						type="text"

@@ -11,6 +11,9 @@ importers:
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
+      exifr:
+        specifier: ^7.1.3
+        version: 7.1.3
       imagesloaded:
         specifier: ^5.0.0
         version: 5.0.0
@@ -901,6 +904,9 @@ packages:
 
   ev-emitter@2.1.2:
     resolution: {integrity: sha512-jQ5Ql18hdCQ4qS+RCrbLfz1n+Pags27q5TwMKvZyhp5hh2UULUYZUy1keqj6k6SYsdqIYjnmz7xyyEY0V67B8Q==}
+
+  exifr@7.1.3:
+    resolution: {integrity: sha512-g/aje2noHivrRSLbAUtBPWFbxKdKhgj/xr1vATDdUXPOFYJlQ62Ft0oy+72V6XLIpDJfHs6gXLbBLAolqOXYRw==}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -2496,6 +2502,8 @@ snapshots:
   ev-emitter@1.1.1: {}
 
   ev-emitter@2.1.2: {}
+
+  exifr@7.1.3: {}
 
   fast-deep-equal@3.1.3: {}
 
