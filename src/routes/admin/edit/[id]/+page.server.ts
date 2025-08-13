@@ -1,6 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getShareById, updateShare, deleteShare } from '$lib/db';
 import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
+import { uploadFile } from '$lib/storage.server';
+import { generateUniqueFileName, isValidImageType } from '$lib/storage-client';
 
 export const load: PageServerLoad = async ({ params, locals, depends }) => {
 	const { id } = params;
@@ -57,13 +59,57 @@ export const actions: Actions = {
 			const description = formData.get('description') as string;
 
 			const imagesStr = formData.get('images') as string;
-			const images = imagesStr ? imagesStr.split(',').filter((url) => url.trim() !== '') : [];
+			const urlImages = imagesStr ? imagesStr.split(',').filter((url) => url.trim() !== '') : [];
+
+			const uploadedImages: any[] = [];
+			const files = formData.getAll('imageFiles') as File[];
+
+			for (const file of files) {
+				if (file && file.size > 0) {
+					if (!isValidImageType(file.type)) {
+						return fail(400, {
+							success: false,
+							error: `不支援的檔案格式: ${file.type}`,
+							share: { title, name, description, images: urlImages }
+						});
+					}
+
+					const buffer = Buffer.from(await file.arrayBuffer());
+					const key = generateUniqueFileName(file.name);
+					const uploadResult = await uploadFile(buffer, key, file.type);
+
+					if (uploadResult.success && uploadResult.url) {
+						const imageObj = {
+							url: uploadResult.url,
+							previewUrl: uploadResult.previewUrl || uploadResult.url,
+							filename: file.name,
+							contentType: file.type
+						};
+						uploadedImages.push(imageObj);
+					} else {
+						return fail(500, {
+							success: false,
+							error: `上傳圖片失敗: ${uploadResult.error}`,
+							share: { title, name, description, images: urlImages }
+						});
+					}
+				}
+			}
+
+			const urlImageObjects = urlImages.map((url) => ({
+				url,
+				previewUrl: url,
+				filename: url.split('/').pop() || 'unknown',
+				contentType: 'image/unknown'
+			}));
+
+			const allImages = [...urlImageObjects, ...uploadedImages];
 
 			if (!title || !name) {
 				return fail(400, {
 					success: false,
 					error: '標題和創建者名稱為必填項',
-					share: { title, name, description, images }
+					share: { title, name, description, images: allImages }
 				});
 			}
 
@@ -71,7 +117,7 @@ export const actions: Actions = {
 				title,
 				name,
 				description,
-				images
+				images: allImages
 			};
 
 			const isAdmin = locals.user.role === 'admin';

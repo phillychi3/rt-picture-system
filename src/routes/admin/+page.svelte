@@ -26,12 +26,14 @@
 <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-8">
 	<header class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
 		<h1 class="text-3xl font-semibold text-gray-800">管理分享內容</h1>
-		<button
-			class="flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-green-700"
-			on:click={createNewShare}
-		>
-			<span class="mr-1">+</span> 新增分享
-		</button>
+		<div class="flex space-x-3">
+			<button
+				class="flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-green-700"
+				on:click={createNewShare}
+			>
+				<span class="mr-1">+</span> 新增分享
+			</button>
+		</div>
 	</header>
 
 	{#if isAdmin}
