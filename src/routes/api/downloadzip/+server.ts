@@ -3,6 +3,27 @@ import { randomUUID } from 'crypto';
 import type { RequestHandler } from './$types';
 import JSZip from 'jszip';
 
+interface ImageObject {
+	url: string;
+	previewUrl?: string;
+	filename?: string;
+	contentType?: string;
+}
+
+type ImageInput = string | ImageObject;
+
+function getImageUrl(imageInput: ImageInput): string {
+	return typeof imageInput === 'string' ? imageInput : imageInput.url;
+}
+
+function getImageFilename(imageInput: ImageInput): string | undefined {
+	return typeof imageInput === 'string' ? undefined : imageInput.filename;
+}
+
+function getImageContentType(imageInput: ImageInput): string | undefined {
+	return typeof imageInput === 'string' ? undefined : imageInput.contentType;
+}
+
 export const GET: RequestHandler = async ({ url }) => {
 	const id = url.searchParams.get('id');
 	if (!id) {
@@ -19,38 +40,47 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 	try {
 		const zip = new JSZip();
-		for (const image of share.images) {
+		for (const imageInput of share.images as ImageInput[]) {
 			try {
-				const response = await fetch(image);
+				const imageUrl = getImageUrl(imageInput);
+				const response = await fetch(imageUrl);
 				if (!response.ok) {
-					console.error(`下載圖片失敗: ${image}`, response.statusText);
+					console.error(`下載圖片失敗: ${imageUrl}`, response.statusText);
 					continue;
 				}
 
 				const imageBuffer = await response.arrayBuffer();
 				let filename = '';
-				const possibleFilename = image.split('/').pop().split('?').shift() || '';
-				if (possibleFilename && possibleFilename.includes('.')) {
-					filename = possibleFilename;
+
+				const predefinedFilename = getImageFilename(imageInput);
+				if (predefinedFilename) {
+					filename = predefinedFilename;
 				} else {
-					const contentDisposition = response.headers.get('Content-Disposition');
-					if (contentDisposition) {
-						const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-						if (matches && matches[1]) {
-							filename = matches[1].replace(/['"]/g, '');
+					const possibleFilename = imageUrl.split('/').pop()?.split('?').shift() || '';
+					if (possibleFilename && possibleFilename.includes('.')) {
+						filename = possibleFilename;
+					} else {
+						const contentDisposition = response.headers.get('Content-Disposition');
+						if (contentDisposition) {
+							const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+							if (matches && matches[1]) {
+								filename = matches[1].replace(/['"]/g, '');
+							}
 						}
-					}
-					if (!filename) {
-						const contentType = response.headers.get('Content-Type') || '';
-						let extension = '.jpg';
+						if (!filename) {
+							const predefinedContentType = getImageContentType(imageInput);
+							const contentType =
+								predefinedContentType || response.headers.get('Content-Type') || '';
+							let extension = '.jpg';
 
-						if (contentType.includes('png')) extension = '.png';
-						else if (contentType.includes('gif')) extension = '.gif';
-						else if (contentType.includes('webp')) extension = '.webp';
-						else if (contentType.includes('jpeg') || contentType.includes('jpg'))
-							extension = '.jpg';
+							if (contentType.includes('png')) extension = '.png';
+							else if (contentType.includes('gif')) extension = '.gif';
+							else if (contentType.includes('webp')) extension = '.webp';
+							else if (contentType.includes('jpeg') || contentType.includes('jpg'))
+								extension = '.jpg';
 
-						filename = `image-${randomUUID()}${extension}`;
+							filename = `image-${randomUUID()}${extension}`;
+						}
 					}
 				}
 
@@ -66,7 +96,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 				zip.file(finalFilename, Buffer.from(imageBuffer));
 			} catch (error) {
-				console.error(`下載圖片失敗: ${image}`, error);
+				console.error(`下載圖片失敗: ${getImageUrl(imageInput)}`, error);
 				continue;
 			}
 		}
