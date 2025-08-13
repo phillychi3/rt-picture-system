@@ -28,10 +28,24 @@
 		return typeof imageInput === 'string' ? imageInput : imageInput.url;
 	}
 
+	function getPreviewUrl(imageInput: ImageInput): string {
+		if (typeof imageInput === 'string') {
+			return imageInput;
+		}
+		return imageInput.previewUrl || imageInput.url;
+	}
+
 	let showExifSidebar = $state(false);
 	let imageLoading = $state(false);
+	let fullImageLoaded = $state(false);
+	let loadingProgress = $state(0);
 	let imageElement: HTMLImageElement;
+	let previewElement: HTMLImageElement;
 	let windowWidth = $state(1024);
+
+	let imageCache = $state(new Map<string, string>());
+
+	let loadingStateCache = $state(new Map<string, boolean>());
 
 	$effect(() => {
 		if (typeof window !== 'undefined') {
@@ -56,16 +70,143 @@
 
 	$effect(() => {
 		if (images[currentIndex]) {
-			imageLoading = true;
+			const currentImage = images[currentIndex];
+			const fullImageUrl = getImageUrl(currentImage);
+
+			if (loadingStateCache.get(fullImageUrl)) {
+				fullImageLoaded = true;
+				imageLoading = false;
+				loadingProgress = 100;
+			} else {
+				imageLoading = true;
+				fullImageLoaded = false;
+				loadingProgress = 0;
+				loadFullImage();
+			}
+
+			preloadAdjacentImages();
 		}
 	});
 
-	function handleImageLoad() {
-		imageLoading = false;
+	function preloadAdjacentImages() {
+		if (!images || images.length <= 1) return;
+
+		const nextIndex = (currentIndex + 1) % images.length;
+		const nextImageUrl = getImageUrl(images[nextIndex]);
+		if (!loadingStateCache.get(nextImageUrl)) {
+			preloadImage(nextImageUrl);
+		}
+
+		const prevIndex = (currentIndex - 1 + images.length) % images.length;
+		const prevImageUrl = getImageUrl(images[prevIndex]);
+		if (!loadingStateCache.get(prevImageUrl)) {
+			preloadImage(prevImageUrl);
+		}
+	}
+
+	async function preloadImage(imageUrl: string) {
+		if (imageCache.has(imageUrl) || loadingStateCache.get(imageUrl)) {
+			return;
+		}
+
+		try {
+			const response = await fetch(imageUrl);
+			if (response.ok) {
+				const blob = await response.blob();
+				const objectUrl = URL.createObjectURL(blob);
+
+				const img = new Image();
+				img.onload = () => {
+					imageCache.set(imageUrl, objectUrl);
+					loadingStateCache.set(imageUrl, true);
+				};
+				img.onerror = () => {
+					URL.revokeObjectURL(objectUrl);
+				};
+				img.src = objectUrl;
+			}
+		} catch (error) {
+			console.error('預載入圖片失敗:', error);
+		}
+	}
+
+	async function loadFullImage() {
+		const currentImage = images[currentIndex];
+		const fullImageUrl = getImageUrl(currentImage);
+		const previewUrl = getPreviewUrl(currentImage);
+
+		if (imageCache.has(fullImageUrl)) {
+			fullImageLoaded = true;
+			imageLoading = false;
+			loadingProgress = 100;
+			return;
+		}
+
+		// 如果完整圖片 URL 與預覽 URL 相同，直接標記為已載入並緩存
+		if (fullImageUrl === previewUrl) {
+			fullImageLoaded = true;
+			imageLoading = false;
+			loadingProgress = 100;
+
+			imageCache.set(fullImageUrl, fullImageUrl);
+			loadingStateCache.set(fullImageUrl, true);
+			return;
+		}
+
+		try {
+			const xhr = new XMLHttpRequest();
+
+			xhr.open('GET', fullImageUrl, true);
+			xhr.responseType = 'blob';
+
+			xhr.onprogress = (event) => {
+				if (event.lengthComputable) {
+					loadingProgress = Math.round((event.loaded / event.total) * 100);
+				}
+			};
+
+			xhr.onload = () => {
+				if (xhr.status === 200) {
+					const blob = xhr.response;
+					const objectUrl = URL.createObjectURL(blob);
+
+					const img = new Image();
+					img.onload = () => {
+						fullImageLoaded = true;
+						imageLoading = false;
+						loadingProgress = 100;
+
+						imageCache.set(fullImageUrl, objectUrl);
+						loadingStateCache.set(fullImageUrl, true);
+					};
+					img.onerror = () => {
+						imageLoading = false;
+						loadingProgress = 0;
+						URL.revokeObjectURL(objectUrl);
+					};
+					img.src = objectUrl;
+				} else {
+					imageLoading = false;
+					loadingProgress = 0;
+				}
+			};
+
+			xhr.onerror = () => {
+				imageLoading = false;
+				loadingProgress = 0;
+			};
+
+			xhr.send();
+		} catch (error) {
+			console.error('載入完整圖片失敗:', error);
+			imageLoading = false;
+			loadingProgress = 0;
+		}
 	}
 
 	function handleImageError() {
 		imageLoading = false;
+		loadingProgress = 0;
 	}
 	function handleKeydown(event: KeyboardEvent) {
 		switch (event.key) {
@@ -78,7 +219,7 @@
 				event.preventDefault();
 				break;
 			case 'Escape':
-				onClose();
+				handleClose();
 				event.preventDefault();
 				break;
 			case 'i':
@@ -100,11 +241,31 @@
 		}
 	}
 
+	function handleClose() {
+		onClose();
+	}
+
 	function handleOverlayClick(event: MouseEvent) {
 		if (event.target === event.currentTarget) {
-			onClose();
+			handleClose();
 		}
 	}
+
+	function cleanup() {
+		imageCache.forEach((objectUrl, imageUrl) => {
+			if (objectUrl.startsWith('blob:')) {
+				URL.revokeObjectURL(objectUrl);
+			}
+		});
+		imageCache.clear();
+		loadingStateCache.clear();
+	}
+
+	$effect(() => {
+		return () => {
+			cleanup();
+		};
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -120,42 +281,25 @@
 >
 	<div class="flex flex-1 transition-all duration-300" class:lg:pr-96={showExifSidebar}>
 		<div class="relative flex flex-1 items-center justify-center p-2 md:p-4">
-			{#if imageLoading}
-				<div class="bg-opacity-50 absolute inset-0 z-10 flex items-center justify-center bg-black">
-					<div class="flex flex-col items-center space-y-3">
-						<svg
-							class="h-8 w-8 animate-spin text-white"
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-						>
-							<circle
-								class="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								stroke-width="4"
-							></circle>
-							<path
-								class="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							></path>
-						</svg>
-						<span class="text-sm text-white">載入中...</span>
-					</div>
-				</div>
-			{/if}
+			<img
+				bind:this={previewElement}
+				src={getPreviewUrl(images[currentIndex])}
+				alt="{title} - 圖片 {currentIndex + 1} (預覽)"
+				class="max-h-full max-w-full object-contain transition-opacity duration-300"
+				class:opacity-100={!fullImageLoaded}
+				class:opacity-0={fullImageLoaded}
+				onerror={handleImageError}
+				style="position: absolute;"
+			/>
 
 			<img
 				bind:this={imageElement}
-				src={getImageUrl(images[currentIndex])}
+				src={imageCache.get(getImageUrl(images[currentIndex])) || getImageUrl(images[currentIndex])}
 				alt="{title} - 圖片 {currentIndex + 1}"
-				class="max-h-full max-w-full object-contain transition-opacity duration-300"
-				class:opacity-50={imageLoading}
-				onload={handleImageLoad}
-				onerror={handleImageError}
+				class="max-h-full max-w-full object-contain transition-opacity duration-500"
+				class:opacity-0={!fullImageLoaded}
+				class:opacity-100={fullImageLoaded}
+				style="position: relative;"
 			/>
 
 			{#if images.length > 1}
@@ -205,6 +349,42 @@
 					{currentIndex + 1} / {images.length}
 				</div>
 			{/if}
+
+			{#if imageLoading && loadingProgress > 0 && loadingProgress < 100}
+				<div
+					class="bg-opacity-75 absolute right-2 bottom-2 z-20 rounded-lg bg-black px-3 py-2 text-white md:right-4 md:bottom-4"
+				>
+					<div class="flex items-center space-x-2">
+						<svg
+							class="h-4 w-4 animate-spin text-white"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
+						</svg>
+						<span class="text-sm">{loadingProgress}%</span>
+					</div>
+					<div class="mt-1 h-1 w-16 rounded-full bg-gray-600">
+						<div
+							class="h-full rounded-full bg-white transition-all duration-300"
+							style="width: {loadingProgress}%"
+						></div>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -246,7 +426,7 @@
 			class="bg-opacity-50 hover:bg-opacity-70 flex h-8 w-8 items-center justify-center rounded-full bg-black text-white transition-all md:h-10 md:w-10"
 			onclick={(e) => {
 				e.stopPropagation();
-				onClose();
+				handleClose();
 			}}
 			aria-label="關閉圖片檢視器"
 		>
