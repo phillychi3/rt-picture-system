@@ -1,18 +1,33 @@
 <script lang="ts">
 	import ExifInfo from './ExifInfo.svelte';
+
+	interface ImageObject {
+		url: string;
+		previewUrl?: string;
+		filename?: string;
+		contentType?: string;
+	}
+
+	type ImageInput = string | ImageObject;
+
 	let {
 		images,
 		currentIndex = $bindable(0),
 		title = '',
 		onClose
 	}: {
-		images: string[];
+		images: ImageInput[];
 		currentIndex: number;
 		title?: string;
 		onClose: () => void;
 		onNext?: () => void;
 		onPrev?: () => void;
 	} = $props();
+
+	function getImageUrl(imageInput: ImageInput): string {
+		return typeof imageInput === 'string' ? imageInput : imageInput.url;
+	}
+
 	let showExifSidebar = $state(false);
 	let imageLoading = $state(false);
 	let imageElement: HTMLImageElement;
@@ -135,7 +150,7 @@
 
 			<img
 				bind:this={imageElement}
-				src={images[currentIndex]}
+				src={getImageUrl(images[currentIndex])}
 				alt="{title} - 圖片 {currentIndex + 1}"
 				class="max-h-full max-w-full object-contain transition-opacity duration-300"
 				class:opacity-50={imageLoading}
@@ -222,7 +237,7 @@
 				</button>
 			</div>
 		{/if}
-		<ExifInfo imageUrl={images[currentIndex]} imageName="圖片 {currentIndex + 1}" />
+		<ExifInfo imageUrl={getImageUrl(images[currentIndex])} imageName="圖片 {currentIndex + 1}" />
 	</div>
 
 	<div class="fixed top-2 left-2 z-20 flex space-x-2 md:top-4 md:left-4">

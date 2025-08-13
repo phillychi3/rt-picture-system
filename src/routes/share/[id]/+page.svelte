@@ -10,6 +10,22 @@
 
 	let loadingImages: Record<number, boolean> = {};
 
+	interface ImageObject {
+		url: string;
+		previewUrl?: string;
+		filename?: string;
+		contentType?: string;
+	}
+
+	type ImageInput = string | ImageObject;
+
+	function getPreviewUrl(imageInput: ImageInput): string {
+		if (typeof imageInput === 'string') {
+			return imageInput;
+		}
+		return imageInput.previewUrl || imageInput.url;
+	}
+
 	function handleImageLoad(index: number) {
 		loadingImages[index] = false;
 	}
@@ -156,7 +172,7 @@
 		<div class="masonry-wrapper w-full">
 			<div class="masonry-container" bind:this={masonryContainer}>
 				<div class="masonry-sizer w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"></div>
-				{#each share.images as imageUrl, i}
+				{#each share.images as imageInput, i}
 					<div class="masonry-item w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" data-index={i}>
 						<div
 							class="m-2 cursor-pointer overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl"
@@ -192,11 +208,11 @@
 									</div>
 								{/if}
 								<img
-									src={imageUrl}
+									src={getPreviewUrl(imageInput)}
 									alt="{share.title} - 圖片 {i + 1}"
 									class="h-auto w-full object-cover"
 									loading="lazy"
-                  decoding="async"
+									decoding="async"
 									style={loadingImages[i] ? 'opacity: 0;' : 'opacity: 1;'}
 									onload={() => handleImageLoad(i)}
 								/>
