@@ -1,0 +1,10 @@
+# robots.txt
+
+User-agent: *
+Allow: /
+
+Disallow: /share/
+Disallow: /share/*
+
+
+
