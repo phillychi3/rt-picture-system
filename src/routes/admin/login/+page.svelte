@@ -32,7 +32,6 @@
 	<div class="w-full max-w-md space-y-8">
 		<div class="text-center">
 			<h2 class="text-foreground text-3xl font-bold tracking-tight">管理員登入</h2>
-			<p class="text-muted-foreground mt-2 text-sm">請輸入您的憑證以訪問管理面板</p>
 		</div>
 
 		{#if form?.success}
