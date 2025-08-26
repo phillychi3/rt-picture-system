@@ -74,7 +74,7 @@ export const actions: Actions = {
 			}
 
 			// 將 URL 圖片轉換為統一格式
-			const urlImageObjects = urlImages.map(url => ({
+			const urlImageObjects = urlImages.map((url) => ({
 				url,
 				previewUrl: url,
 				filename: url.split('/').pop() || 'unknown',

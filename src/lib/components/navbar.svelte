@@ -6,23 +6,27 @@
 	};
 </script>
 
-<header class="sticky top-0 z-30 w-full">
-	<nav class="bg-white shadow-sm">
-		<div class="container mx-auto px-6 py-3">
-			<div class="flex items-center justify-between">
-				<div>
-					<a class="text-xl font-bold text-gray-800 hover:text-gray-700 md:text-2xl" href="/"
-						>RT PIC</a
-					>
-				</div>
-				<div class="flex items-center">
-					<a class="mx-2 text-gray-800 hover:text-gray-600" href="/admin/login">Admin</a>
-					<a
-						class="mx-2 text-gray-800 hover:text-gray-600"
-						href="https://github.com/phillychi3/rt-picture-system"
-						target="_blank">Github</a
-					>
-				</div>
+<header
+	class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 w-full border-b backdrop-blur"
+>
+	<nav class="container mx-auto">
+		<div class="flex h-16 items-center justify-between px-6">
+			<div>
+				<a
+					class="text-foreground hover:text-muted-foreground text-xl font-bold transition-colors md:text-2xl"
+					href="/">RT PIC</a
+				>
+			</div>
+			<div class="flex items-center space-x-4">
+				<a
+					class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+					href="/admin/login">Admin</a
+				>
+				<a
+					class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+					href="https://github.com/phillychi3/rt-picture-system"
+					target="_blank">Github</a
+				>
 			</div>
 		</div>
 	</nav>
