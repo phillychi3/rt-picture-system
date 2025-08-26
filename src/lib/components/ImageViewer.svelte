@@ -42,6 +42,9 @@
 	let imageElement: HTMLImageElement;
 	let previewElement: HTMLImageElement;
 	let windowWidth = $state(1024);
+	let isDragging = $state(false);
+	let dragStartTime = $state(0);
+	let lastKeyTime = $state(0);
 
 	let imageCache = $state(new Map<string, string>());
 
@@ -153,6 +156,9 @@
 			return;
 		}
 
+		imageLoading = true;
+		loadingProgress = 5;
+
 		try {
 			const xhr = new XMLHttpRequest();
 
@@ -162,6 +168,9 @@
 			xhr.onprogress = (event) => {
 				if (event.lengthComputable) {
 					loadingProgress = Math.round((event.loaded / event.total) * 100);
+				} else {
+					// 如果無法計算進度，使用間接進度指示
+					loadingProgress = Math.min(loadingProgress + 5, 90);
 				}
 			};
 
@@ -208,7 +217,40 @@
 		imageLoading = false;
 		loadingProgress = 0;
 	}
+
+	function handleMouseDown(event: MouseEvent) {
+		isDragging = false;
+		dragStartTime = Date.now();
+	}
+
+	function handleMouseMove(event: MouseEvent) {
+		if (Date.now() - dragStartTime > 100) {
+			isDragging = true;
+		}
+	}
+
+	function handleMouseUp(event: MouseEvent) {
+		setTimeout(() => {
+			isDragging = false;
+		}, 100);
+	}
+
+	function handleDragStart(event: DragEvent) {
+		isDragging = true;
+		event.preventDefault();
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
+		if (isDragging || Date.now() - dragStartTime < 200) {
+			return;
+		}
+
+		const now = Date.now();
+		if (now - lastKeyTime < 100) {
+			return;
+		}
+		lastKeyTime = now;
+
 		switch (event.key) {
 			case 'ArrowRight':
 				nextImage();
@@ -230,14 +272,16 @@
 		}
 	}
 	function nextImage() {
-		if (images && images.length > 0) {
-			currentIndex = (currentIndex + 1) % images.length;
+		if (images && images.length > 0 && !isDragging) {
+			const newIndex = (currentIndex + 1) % images.length;
+			currentIndex = newIndex;
 		}
 	}
 
 	function prevImage() {
-		if (images && images.length > 0) {
-			currentIndex = (currentIndex - 1 + images.length) % images.length;
+		if (images && images.length > 0 && !isDragging) {
+			const newIndex = (currentIndex - 1 + images.length) % images.length;
+			currentIndex = newIndex;
 		}
 	}
 
@@ -289,7 +333,12 @@
 				class:opacity-100={!fullImageLoaded}
 				class:opacity-0={fullImageLoaded}
 				onerror={handleImageError}
+				onmousedown={handleMouseDown}
+				onmousemove={handleMouseMove}
+				onmouseup={handleMouseUp}
+				ondragstart={handleDragStart}
 				style="position: absolute;"
+				draggable="false"
 			/>
 
 			<img
@@ -299,7 +348,12 @@
 				class="max-h-full max-w-full object-contain transition-opacity duration-500"
 				class:opacity-0={!fullImageLoaded}
 				class:opacity-100={fullImageLoaded}
+				onmousedown={handleMouseDown}
+				onmousemove={handleMouseMove}
+				onmouseup={handleMouseUp}
+				ondragstart={handleDragStart}
 				style="position: relative;"
+				draggable="false"
 			/>
 
 			{#if images.length > 1}
@@ -308,7 +362,9 @@
 					class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 left-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black text-white transition-all md:left-4 md:h-12 md:w-12"
 					onclick={(e) => {
 						e.stopPropagation();
-						prevImage();
+						if (!isDragging) {
+							prevImage();
+						}
 					}}
 					aria-label="上一張圖片"
 				>
@@ -327,7 +383,9 @@
 					class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 right-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black text-white transition-all md:right-4 md:h-12 md:w-12"
 					onclick={(e) => {
 						e.stopPropagation();
-						nextImage();
+						if (!isDragging) {
+							nextImage();
+						}
 					}}
 					aria-label="下一張圖片"
 				>
@@ -350,7 +408,7 @@
 				</div>
 			{/if}
 
-			{#if imageLoading && loadingProgress > 0 && loadingProgress < 100}
+			{#if imageLoading}
 				<div
 					class="bg-opacity-75 absolute right-2 bottom-2 z-20 rounded-lg bg-black px-3 py-2 text-white md:right-4 md:bottom-4"
 				>
@@ -375,12 +433,12 @@
 								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 							></path>
 						</svg>
-						<span class="text-sm">{loadingProgress}%</span>
+						<span class="text-sm">{loadingProgress > 0 ? loadingProgress : 0}%</span>
 					</div>
 					<div class="mt-1 h-1 w-16 rounded-full bg-gray-600">
 						<div
 							class="h-full rounded-full bg-white transition-all duration-300"
-							style="width: {loadingProgress}%"
+							style="width: {loadingProgress > 0 ? loadingProgress : 5}%"
 						></div>
 					</div>
 				</div>
