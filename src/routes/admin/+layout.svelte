@@ -67,7 +67,6 @@
 							</div>
 						{:else}
 							<div class="hidden items-center space-x-4 md:flex">
-								<ThemeToggle />
 								<div class="bg-muted h-8 w-20 animate-pulse rounded"></div>
 							</div>
 						{/if}
