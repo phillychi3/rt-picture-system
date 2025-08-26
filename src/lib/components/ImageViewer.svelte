@@ -362,9 +362,7 @@
 					class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 left-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black text-white transition-all md:left-4 md:h-12 md:w-12"
 					onclick={(e) => {
 						e.stopPropagation();
-						if (!isDragging) {
-							prevImage();
-						}
+						prevImage();
 					}}
 					aria-label="上一張圖片"
 				>
@@ -383,9 +381,7 @@
 					class="bg-opacity-50 hover:bg-opacity-70 absolute top-1/2 right-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black text-white transition-all md:right-4 md:h-12 md:w-12"
 					onclick={(e) => {
 						e.stopPropagation();
-						if (!isDragging) {
-							nextImage();
-						}
+						nextImage();
 					}}
 					aria-label="下一張圖片"
 				>
