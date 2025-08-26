@@ -80,7 +80,7 @@
 				percentPosition: true,
 				transitionDuration: '0.2s',
 				gutter: 16,
-				fitWidth: true
+				fitWidth: false
 			});
 			imagesLoaded.default(masonryContainer, () => {
 				masonryInstance.layout();

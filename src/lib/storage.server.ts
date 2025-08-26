@@ -74,13 +74,25 @@ export async function generatePresignedUploadUrl(
 }
 
 async function generateWebpPreview(buffer: Buffer): Promise<Buffer> {
-	return await sharp(buffer)
-		.webp({ quality: 80 })
-		.resize(1200, 1200, {
-			fit: 'inside',
-			withoutEnlargement: true
-		})
-		.toBuffer();
+	try {
+		return await sharp(buffer)
+			.rotate()
+			.webp({ quality: 80 })
+			.resize(1200, 1200, {
+				fit: 'inside',
+				withoutEnlargement: true
+			})
+			.toBuffer();
+	} catch (error) {
+		console.warn('使用 rotate() 處理圖片失敗，嘗試不旋轉:', error);
+		return await sharp(buffer)
+			.webp({ quality: 80 })
+			.resize(1200, 1200, {
+				fit: 'inside',
+				withoutEnlargement: true
+			})
+			.toBuffer();
+	}
 }
 
 export async function uploadFile(
