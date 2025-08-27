@@ -46,7 +46,7 @@
 			</div>
 		{/if}
 
-		<div class="border-border bg-card rounded-lg border p-6 shadow-sm">
+		<div class="border-border rounded-lg border p-6 shadow-sm">
 			<form method="POST" action="?/login" on:submit={handleSubmit} class="space-y-6">
 				<div class="space-y-4">
 					<div class="space-y-2">

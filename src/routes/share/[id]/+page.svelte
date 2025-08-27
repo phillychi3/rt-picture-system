@@ -79,7 +79,7 @@
 				columnWidth: '.masonry-sizer',
 				percentPosition: true,
 				transitionDuration: '0.2s',
-				gutter: 16,
+				gutter: 0,
 				fitWidth: false
 			});
 			imagesLoaded.default(masonryContainer, () => {
@@ -134,17 +134,17 @@
 <svelte:window on:resize={handleResize} />
 
 <div class="bg-background min-h-screen">
-	<div class="mx-auto max-w-7xl px-4 py-8">
+	<div class="mx-auto py-8">
 		<header
 			class="border-border mb-8 flex flex-col gap-6 border-b pb-6 sm:flex-row sm:items-center sm:justify-between"
 		>
-			<div class="space-y-2">
+			<div class="space-y-2 px-4">
 				<h1 class="text-foreground text-3xl font-bold tracking-tight">{share.title}</h1>
 				<p class="text-muted-foreground">由 {share.name} 分享</p>
 			</div>
 			<div class="flex flex-col gap-4 sm:items-end">
 				<button
-					class="bg-primary text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-ring inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+					class="bg-primary text-primary-foreground ring-offset-background inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-black hover:text-white disabled:pointer-events-none disabled:opacity-50"
 					onclick={downloadAll}
 					disabled={isdownloading}
 				>
@@ -180,11 +180,11 @@
 		{#if share.images && share.images.length > 0}
 			<div class="masonry-wrapper w-full">
 				<div class="masonry-container" bind:this={masonryContainer}>
-					<div class="masonry-sizer w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"></div>
+					<div class="masonry-sizer w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/4"></div>
 					{#each share.images as imageInput, i}
-						<div class="masonry-item w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" data-index={i}>
+						<div class="masonry-item w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/4" data-index={i}>
 							<div
-								class="group border-border bg-card relative m-2 cursor-pointer overflow-hidden rounded-lg border shadow-sm transition-all duration-300 hover:shadow-md"
+								class="group border-border relative m-[0.15rem] cursor-pointer overflow-hidden border shadow-sm transition-all duration-300 hover:shadow-md"
 								onclick={() => openImageViewer(i)}
 								onkeypress={(e) => e.key === 'Enter' && openImageViewer(i)}
 								tabindex="0"
