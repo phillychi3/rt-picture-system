@@ -30,6 +30,9 @@
 	{#if firstImageUrl}
 		<meta property="og:image" content={firstImageUrl} />
 		<meta property="og:image:alt" content={share?.title || share?.name || '分享圖片'} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:type" content="image/jpeg" />
 	{/if}
 
 	<meta name="twitter:card" content="summary_large_image" />
@@ -40,6 +43,8 @@
 	/>
 	{#if firstImageUrl}
 		<meta name="twitter:image" content={firstImageUrl} />
+		<meta name="twitter:image:width" content="1200" />
+		<meta name="twitter:image:height" content="630" />
 	{/if}
 
 	<meta name="robots" content="noindex, nofollow" />
