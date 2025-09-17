@@ -1,7 +1,9 @@
-import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import autoAdapter from '@sveltejs/adapter-auto';
+import zeaburAdapter from '@zeabur/svelte-adapter';
 
 /** @type {import('@sveltejs/kit').Config} */
+const adapter = process.env.ZEABUR_SERVICE_ID ? zeaburAdapter : autoAdapter;
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
